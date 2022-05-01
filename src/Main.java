@@ -1,8 +1,11 @@
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -17,6 +20,8 @@ public class Main extends Application {
 
     private Employee[] mEmployees;
     private Section[] mSections;
+    private final ListView<Employee> mListView = new ListView<>();
+    private final Text mEmployeeInfo = new Text();
 
     @Override
     public void start(Stage stage) {
@@ -52,26 +57,52 @@ public class Main extends Application {
         Group root = new Group();
         Scene scene = new Scene(root);
         stage.setScene(scene);
-        stage.setWidth(1150);
+        stage.setWidth(1250);
         stage.setHeight(700);
 
+        final int indent = 10;
         TextField textField = new TextField();
-        textField.setTranslateX(10);
-        textField.setTranslateY(10);
+        textField.setTranslateX(indent);
+        textField.setTranslateY(indent);
 
         Button buttonLoad = new Button("Load File");
-        buttonLoad.setTranslateX(10);
+        buttonLoad.setTranslateX(indent);
         buttonLoad.setTranslateY(40);
         buttonLoad.setOnAction(event -> loadFile(textField.getText()));
         Button buttonSave = new Button("Save File");
-        buttonSave.setTranslateX(10);
+        buttonSave.setTranslateX(indent);
         buttonSave.setTranslateY(70);
         buttonSave.setOnAction(event -> saveFile(textField.getText()));
 
-        root.getChildren().addAll(textField, buttonLoad, buttonSave);
+        mListView.setTranslateX(indent);
+        mListView.setTranslateY(100);
+        int listViewWidth = 200, listViewHeight = 360;
+        mListView.setMaxWidth(listViewWidth);
+        mListView.setMaxHeight(listViewHeight);
+        mListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Employee>() {
+            @Override
+            public void changed(ObservableValue<? extends Employee> observableValue, Employee employee, Employee t1) {
+                showEmployeeInfo(t1);
+            }
+        });
+        mListView.setItems(FXCollections.observableArrayList(mEmployees));
 
-        final int topPosY = 30, posXa = 200;
+        root.getChildren().addAll(textField, buttonLoad, buttonSave, mListView, mEmployeeInfo);
 
+        Line[] employeeInfoBorder = new Line[4];
+        int employeeInfoPosY = 100 + listViewHeight + indent, employeeInfoHeight = 180;
+        employeeInfoBorder[0] = new Line(indent, employeeInfoPosY, indent + listViewWidth, employeeInfoPosY);
+        employeeInfoBorder[1] = new Line(indent + listViewWidth, employeeInfoPosY,
+                indent + listViewWidth, employeeInfoPosY + employeeInfoHeight);
+        employeeInfoBorder[2] = new Line(indent, employeeInfoPosY + employeeInfoHeight,
+                indent + listViewWidth, employeeInfoPosY + employeeInfoHeight);
+        employeeInfoBorder[3] = new Line(indent, employeeInfoPosY, indent, employeeInfoPosY + employeeInfoHeight);
+        root.getChildren().addAll(employeeInfoBorder);
+        mEmployeeInfo.setX(indent * 2); mEmployeeInfo.setY(employeeInfoPosY + indent * 2);
+
+        final int topPosY = 30, posXa = 300;
+
+        Text appsLabel = new Text("Apps");
         PositionSlot[][] apps = new PositionSlot[10][];
         for (int i = 0; i < apps.length; i++) {
             int offset = 40;
@@ -90,119 +121,135 @@ public class Main extends Application {
                 apps[i][1] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
-                        topPosY + (i * PositionSlot.HEIGHT) + offset);
+                        topPosY + (i * PositionSlot.HEIGHT) + offset,
+                        slotLabel, appsLabel);
                 for (PositionSlot slot : apps[i]) { slot.addTo(root.getChildren()); }
             } else {
                 apps[i] = new PositionSlot[3];
+                String subtitle = "Sweep " + (i - 6);
                 apps[i][0] = new PositionSlot(
                         posXa,
                         topPosY + (i * PositionSlot.HEIGHT) + offset,
-                        "Sweep " + (i - 6));
+                        subtitle);
                 apps[i][1] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
-                        topPosY + (i * PositionSlot.HEIGHT) + offset);
+                        topPosY + (i * PositionSlot.HEIGHT) + offset,
+                        subtitle, appsLabel);
                 apps[i][2] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + (PositionSlot.WIDTH * 2),
-                        topPosY + (i * PositionSlot.HEIGHT) + offset);
+                        topPosY + (i * PositionSlot.HEIGHT) + offset,
+                        subtitle, appsLabel);
                 for (PositionSlot slot : apps[i]) { slot.addTo(root.getChildren()); }
             }
         }
 
-        Text appsLabel = new Text("Apps");
         appsLabel.setFont(Font.font(20));
         appsLabel.setX(posXa); appsLabel.setY(apps[0][0].getTop() - 10);
         root.getChildren().add(appsLabel);
 
+        Text scanwayLabel = new Text("Scanway");
         PositionSlot[][] scanway = new PositionSlot[2][];
         final int scanwayPosY = apps[apps.length - 1][0].getBottom() + (int) (PositionSlot.HEIGHT * 1.5);
         for (int i = 0; i < scanway.length; i++) {
             if (i < 1) {
                 scanway[i] = new PositionSlot[2];
+                String subtitle = "Key";
                 scanway[i][0] = new PositionSlot(
                         posXa,
                         scanwayPosY,
-                        "Key");
+                        subtitle);
                 scanway[i][1] = new PositionSlot(
                         CraftEnum.CLERK,
                         posXa + PositionSlot.WIDTH,
-                        scanwayPosY);
+                        scanwayPosY,
+                        subtitle, scanwayLabel);
                 for (PositionSlot slot : scanway[i]) { slot.addTo(root.getChildren()); }
             } else {
                 scanway[i] = new PositionSlot[3];
+                String subtitle = "Sweep";
                 scanway[i][0] = new PositionSlot(
                         posXa,
                         scanwayPosY + (i * PositionSlot.HEIGHT),
-                        "Sweep");
+                        subtitle);
                 scanway[i][1] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
-                        scanwayPosY + (i * PositionSlot.HEIGHT));
+                        scanwayPosY + (i * PositionSlot.HEIGHT),
+                        subtitle, scanwayLabel);
                 scanway[i][2] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + (PositionSlot.WIDTH * 2),
-                        scanwayPosY + (i * PositionSlot.HEIGHT));
+                        scanwayPosY + (i * PositionSlot.HEIGHT),
+                        subtitle, scanwayLabel);
                 for (PositionSlot slot : scanway[i]) { slot.addTo(root.getChildren()); }
             }
         }
 
-        Text scanwayLabel = new Text("Scanway");
         scanwayLabel.setFont(Font.font(20));
         scanwayLabel.setX(posXa); scanwayLabel.setY(scanway[0][0].getTop() - 10);
         root.getChildren().add(scanwayLabel);
 
+        Text adusLabel = new Text("ADUS");
         PositionSlot[][] adus = new PositionSlot[4][];
         final int adusPosY = scanway[scanway.length - 1][0].getBottom() + (int) (PositionSlot.HEIGHT * 1.5);
         for (int i = 0; i < adus.length; i++) {
             if (i == 0) {
                 adus[i] = new PositionSlot[4];
+                String subtitle = "Facers";
                 adus[i][0] = new PositionSlot(
                         posXa,
                         adusPosY,
-                        "Facers");
+                        subtitle);
                 for (int j = 1; j < adus[i].length; j++) {
                     adus[i][j] = new PositionSlot(
                             CraftEnum.CLERK,
                             posXa + (PositionSlot.WIDTH * j),
-                            adusPosY);
+                            adusPosY,
+                            subtitle, adusLabel);
                 }
                 for (PositionSlot slot : adus[i]) { slot.addTo(root.getChildren()); }
             } else if (i < 3) {
                 adus[i] = new PositionSlot[3];
+                String subtitle = (i == 1 ? "Odd" : "Even") + " Sweep";
                 adus[i][0] = new PositionSlot(
                         posXa,
                         adusPosY + (i * PositionSlot.HEIGHT),
-                        (i == 1 ? "Odd" : "Even") + " Sweep");
+                        subtitle);
                 adus[i][1] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
-                        adusPosY + (i * PositionSlot.HEIGHT));
+                        adusPosY + (i * PositionSlot.HEIGHT),
+                        subtitle, adusLabel);
                 adus[i][2] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + (PositionSlot.WIDTH * 2),
-                        adusPosY + (i * PositionSlot.HEIGHT));
+                        adusPosY + (i * PositionSlot.HEIGHT),
+                        subtitle, adusLabel);
                 for (PositionSlot slot : adus[i]) { slot.addTo(root.getChildren()); }
             } else {
                 adus[i] = new PositionSlot[2];
+                String subtitle = "Loader";
                 adus[i][0] = new PositionSlot(
                         posXa,
                         adusPosY + (i * PositionSlot.HEIGHT),
-                        "Loader");
+                        subtitle);
                 adus[i][1] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
-                        adusPosY + (i * PositionSlot.HEIGHT));
+                        adusPosY + (i * PositionSlot.HEIGHT),
+                        subtitle, adusLabel);
             }
         }
 
-        Text adusLabel = new Text("ADUS");
         adusLabel.setFont(Font.font(20));
         adusLabel.setX(posXa); adusLabel.setY(adus[0][0].getTop() - 10);
         root.getChildren().add(adusLabel);
 
         int posXb = adus[0][adus[0].length - 1].getRight() + (PositionSlot.WIDTH / 2);
 
+        Text prepLabel = new Text("Prep");
         PositionSlot[][] prep = new PositionSlot[4][];
         for (int i = 0; i < prep.length; i++) {
             prep[i] = new PositionSlot[2];
@@ -210,16 +257,17 @@ public class Main extends Application {
                 prep[i][j] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXb + (PositionSlot.WIDTH * j),
-                        topPosY + (PositionSlot.HEIGHT * i));
+                        topPosY + (PositionSlot.HEIGHT * i),
+                        null, prepLabel);
             }
             for (PositionSlot slot : prep[i]) { slot.addTo(root.getChildren()); }
         }
 
-        Text prepLabel = new Text("Prep");
         prepLabel.setFont(Font.font(20));
         prepLabel.setX(posXb); prepLabel.setY(prep[0][0].getTop() - 10);
         root.getChildren().add(prepLabel);
 
+        Text dockMailhandlersLabel = new Text("Dock Mailhandlers");
         PositionSlot[][] dockMailhandlers = new PositionSlot[5][];
         final int dockMailhandlersPosY =
                 prep[prep.length - 1][0].getBottom() + (int) (PositionSlot.HEIGHT * 1.5);
@@ -240,7 +288,8 @@ public class Main extends Application {
                     dockMailhandlers[i][j] = new PositionSlot(
                             CraftEnum.MAILHANDLER,
                             posXb + (PositionSlot.WIDTH * j),
-                            dockMailhandlersPosY + (i * PositionSlot.HEIGHT));
+                            dockMailhandlersPosY + (i * PositionSlot.HEIGHT),
+                            dockMailhandlersSlotLabel, dockMailhandlersLabel);
                 }
                 for (PositionSlot slot : dockMailhandlers[i]) { slot.addTo(root.getChildren()); }
             } else {
@@ -252,16 +301,17 @@ public class Main extends Application {
                 dockMailhandlers[i][1] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXb + PositionSlot.WIDTH,
-                        dockMailhandlersPosY + (i * PositionSlot.HEIGHT));
+                        dockMailhandlersPosY + (i * PositionSlot.HEIGHT),
+                        dockMailhandlersSlotLabel, dockMailhandlersLabel);
                 for (PositionSlot slot : dockMailhandlers[i]) { slot.addTo(root.getChildren()); }
             }
         }
 
-        Text dockMailhandlersLabel = new Text("Dock Mailhandlers");
         dockMailhandlersLabel.setFont(Font.font(20));
         dockMailhandlersLabel.setX(posXb); dockMailhandlersLabel.setY(dockMailhandlers[0][0].getTop() - 10);
         root.getChildren().add(dockMailhandlersLabel);
 
+        Text dockClerksLabel = new Text("Dock Clerks");
         PositionSlot[][] dockClerks = new PositionSlot[4][];
         final int dockClerksPosY =
                 dockMailhandlers[dockMailhandlers.length - 1][0].getBottom() + (int) (PositionSlot.HEIGHT * 1.5);
@@ -280,7 +330,8 @@ public class Main extends Application {
                 dockClerks[i][j] = new PositionSlot(
                         CraftEnum.CLERK,
                         posXb + (PositionSlot.WIDTH * j),
-                        dockClerksPosY + (i * PositionSlot.HEIGHT));
+                        dockClerksPosY + (i * PositionSlot.HEIGHT),
+                        dockClerksSlotLabel, dockClerksLabel);
             }
             for (PositionSlot slot : dockClerks[i]) { slot.addTo(root.getChildren()); }
         }
@@ -288,11 +339,11 @@ public class Main extends Application {
         int posXc = dockMailhandlers[dockMailhandlers.length - 1]
                 [dockMailhandlers[dockMailhandlers.length - 1].length - 1].getRight() + (PositionSlot.WIDTH / 2);
 
-        Text dockClerksLabel = new Text("Dock Clerks");
         dockClerksLabel.setFont(Font.font(20));
         dockClerksLabel.setX(posXb); dockClerksLabel.setY(dockClerks[0][0].getTop() - 10);
         root.getChildren().add(dockClerksLabel);
 
+        Text lcusLabel = new Text("LCUS");
         PositionSlot[][] lcus = new PositionSlot[8][];
         for (int i = 0; i < lcus.length; i++) {
             final String lcusSlotLabel;
@@ -310,14 +361,16 @@ public class Main extends Application {
                 lcus[i][1] = new PositionSlot(
                         CraftEnum.CLERK,
                         posXc + PositionSlot.WIDTH,
-                        topPosY + (i * PositionSlot.HEIGHT));
+                        topPosY + (i * PositionSlot.HEIGHT),
+                        lcusSlotLabel, lcusLabel);
             } else if (i == 2) {
                 lcus[i] = new PositionSlot[7];
                 for (int j = 1; j < lcus[i].length; j++) {
                     lcus[i][j] = new PositionSlot(
                             CraftEnum.EITHER,
                             posXc + (PositionSlot.WIDTH * j),
-                            topPosY + (i * PositionSlot.HEIGHT));
+                            topPosY + (i * PositionSlot.HEIGHT),
+                            lcusSlotLabel, lcusLabel);
                 }
             } else {
                 lcus[i] = new PositionSlot[3];
@@ -325,7 +378,8 @@ public class Main extends Application {
                     lcus[i][j] = new PositionSlot(
                             i == 0 ? CraftEnum.MAILHANDLER : CraftEnum.CLERK,
                             posXc + (PositionSlot.WIDTH * j),
-                            topPosY + (i * PositionSlot.HEIGHT));
+                            topPosY + (i * PositionSlot.HEIGHT),
+                            lcusSlotLabel, lcusLabel);
                 }
             }
             lcus[i][0] = new PositionSlot(
@@ -335,20 +389,21 @@ public class Main extends Application {
         }
         for (PositionSlot[] slots : lcus) {for (PositionSlot slot : slots) { slot.addTo(root.getChildren()); } }
 
-        Text lcusLabel = new Text("LCUS");
         lcusLabel.setFont(Font.font(20));
         lcusLabel.setX(posXc); lcusLabel.setY(lcus[0][0].getTop() - 10);
         root.getChildren().add(lcusLabel);
 
+        Text statesLabel = new Text("States");
         PositionSlot[][] states = new PositionSlot[11][];
         int statesPosY = lcus[lcus.length - 1][0].getBottom() + (int) (PositionSlot.HEIGHT * 1.5);
         for (int i = 0; i < states.length; i++) {
             final String statesSlotLabel;
             if (i == 0) statesSlotLabel = "Loader";
             else if (i == 1) statesSlotLabel = "Belt";
-            else if (i < 7) statesSlotLabel = (i - 1) + "00";
+            else if (i < 7) statesSlotLabel = (i - 2) + "00";
             else if (i == 7) statesSlotLabel = "500/600";
-            else if (i < 10) statesSlotLabel = (i - 2) + "Belt";
+            else if (i == 8) statesSlotLabel = (i - 1) + "00";
+            else if (i < 10) statesSlotLabel = i + "00";
             else statesSlotLabel = "569";
 
             if (i == 0) {
@@ -356,20 +411,23 @@ public class Main extends Application {
                 states[i][1] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXc + PositionSlot.WIDTH,
-                        statesPosY);
+                        statesPosY,
+                        statesSlotLabel, statesLabel);
             } else if (i == states.length - 1 || (i > 1 && i < 8)) {
                 states[i] = new PositionSlot[2];
                 states[i][1] = new PositionSlot(
                         CraftEnum.CLERK,
                         posXc + PositionSlot.WIDTH,
-                        statesPosY + (i * PositionSlot.HEIGHT));
+                        statesPosY + (i * PositionSlot.HEIGHT),
+                        statesSlotLabel, statesLabel);
             } else {
                 states[i] = new PositionSlot[i == 1 ? 7 : 3];
                 for (int j = 1; j < states[i].length; j++) {
                     states[i][j] = new PositionSlot(
                             CraftEnum.CLERK,
                             posXc + (PositionSlot.WIDTH * j),
-                            statesPosY + (i * PositionSlot.HEIGHT));
+                            statesPosY + (i * PositionSlot.HEIGHT),
+                            statesSlotLabel, statesLabel);
                 }
             }
             states[i][0] = new PositionSlot(
@@ -379,7 +437,6 @@ public class Main extends Application {
         }
         for (PositionSlot[] slots : states) {for (PositionSlot slot : slots) { slot.addTo(root.getChildren()); } }
 
-        Text statesLabel = new Text("States");
         statesLabel.setFont(Font.font(20));
         statesLabel.setX(posXc); statesLabel.setY(states[0][0].getTop() - 10);
         root.getChildren().add(statesLabel);
@@ -409,6 +466,8 @@ public class Main extends Application {
         for (int i = 0; i < lines.size(); i++) {
             mEmployees[i] = new Employee(lines.get(i).split(","));
         }
+
+        mListView.setItems(FXCollections.observableArrayList(mEmployees));
     }
 
     private void saveFile(String path) {
@@ -424,5 +483,9 @@ public class Main extends Application {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+    }
+
+    private void showEmployeeInfo(Employee employee) {
+        mEmployeeInfo.setText(employee.getInfo());
     }
 }

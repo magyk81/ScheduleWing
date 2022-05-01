@@ -7,30 +7,42 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PositionSlot {
 
     public final static int WIDTH = 60, HEIGHT = WIDTH / 2;
+    private final static List<PositionSlot> sPositionSlots = new ArrayList<>();
 
     private final boolean mIsLabel;
     private final Line[] mBorder = new Line[4];
     private Employee mEmployee;
     private Rectangle mRect;
     private Text mText;
+    private String mTitle, mSubtitle;
 
-    public PositionSlot(CraftEnum craft, int xPos, int yPos) {
+    public PositionSlot(CraftEnum craft, int xPos, int yPos, String subtitle, Text title) {
         mIsLabel = false;
         init(xPos, yPos);
         mRect.setFill(craft.getColor());
+        mSubtitle = subtitle;
+        mTitle = title.getText();
+        sPositionSlots.add(this);
     }
 
-    public PositionSlot(int xPos, int yPos, String label) {
+    public PositionSlot(int xPos, int yPos, String subtitle) {
         mIsLabel = true;
         init(xPos, yPos);
-        mText.setText(label.replace(' ', '\n'));
+        mText.setText(subtitle.replace(' ', '\n'));
         if (!mText.getText().contains("\n")) {
             mText.setFont(Font.font(15));
             mText.setY(mRect.getY() + HEIGHT / 1.5);
         }
+    }
+
+    public static String getName(int idx) {
+        return sPositionSlots.get(idx).getName();
     }
 
     public void setEmployee(Employee employee) {
@@ -48,6 +60,17 @@ public class PositionSlot {
     public int getTop() { return (int) mRect.getY(); }
     public int getBottom() { return (int) mRect.getY() + HEIGHT; }
     public int getRight() { return (int) mRect.getX() + WIDTH; }
+
+    private String getName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(mTitle);
+        if (mSubtitle != null) {
+            sb.append(" [");
+            sb.append(mSubtitle);
+            sb.append("]");
+        }
+        return sb.toString();
+    }
 
     private void init(int xPos, int yPos) {
         mRect = new Rectangle();
