@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Main extends Application {
 
@@ -58,7 +59,7 @@ public class Main extends Application {
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.setWidth(1250);
-        stage.setHeight(700);
+        stage.setHeight(770);
 
         final int indent = 10;
         TextField textField = new TextField();
@@ -90,7 +91,7 @@ public class Main extends Application {
         root.getChildren().addAll(textField, buttonLoad, buttonSave, mListView, mEmployeeInfo);
 
         Line[] employeeInfoBorder = new Line[4];
-        int employeeInfoPosY = 100 + listViewHeight + indent, employeeInfoHeight = 180;
+        int employeeInfoPosY = 100 + listViewHeight + indent, employeeInfoHeight = 250;
         employeeInfoBorder[0] = new Line(indent, employeeInfoPosY, indent + listViewWidth, employeeInfoPosY);
         employeeInfoBorder[1] = new Line(indent + listViewWidth, employeeInfoPosY,
                 indent + listViewWidth, employeeInfoPosY + employeeInfoHeight);
@@ -99,6 +100,23 @@ public class Main extends Application {
         employeeInfoBorder[3] = new Line(indent, employeeInfoPosY, indent, employeeInfoPosY + employeeInfoHeight);
         root.getChildren().addAll(employeeInfoBorder);
         mEmployeeInfo.setX(indent * 2); mEmployeeInfo.setY(employeeInfoPosY + indent * 2);
+
+        Consumer<PositionSlot> consoomer = positionSlot -> {
+            Employee selectedEmployee = mListView.getSelectionModel().getSelectedItem();
+            if (selectedEmployee != null) {
+                if (positionSlot.getEmployee() == selectedEmployee) {
+                    selectedEmployee.removePosition(positionSlot);
+                } else {
+                    PositionSlot existingPosition = selectedEmployee.addPosition(positionSlot);
+                    if (existingPosition != null) {
+                        // Should work now.
+                        selectedEmployee.addPosition(positionSlot);
+                    }
+                    positionSlot.setEmployee(selectedEmployee);
+                }
+                showEmployeeInfo(selectedEmployee);
+            } else positionSlot.clearEmployee();
+        };
 
         final int topPosY = 30, posXa = 300;
 
@@ -122,7 +140,7 @@ public class Main extends Application {
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
                         topPosY + (i * PositionSlot.HEIGHT) + offset,
-                        slotLabel, appsLabel);
+                        slotLabel, appsLabel, consoomer);
                 for (PositionSlot slot : apps[i]) { slot.addTo(root.getChildren()); }
             } else {
                 apps[i] = new PositionSlot[3];
@@ -135,12 +153,12 @@ public class Main extends Application {
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
                         topPosY + (i * PositionSlot.HEIGHT) + offset,
-                        subtitle, appsLabel);
+                        subtitle, appsLabel, consoomer);
                 apps[i][2] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + (PositionSlot.WIDTH * 2),
                         topPosY + (i * PositionSlot.HEIGHT) + offset,
-                        subtitle, appsLabel);
+                        subtitle, appsLabel, consoomer);
                 for (PositionSlot slot : apps[i]) { slot.addTo(root.getChildren()); }
             }
         }
@@ -164,7 +182,7 @@ public class Main extends Application {
                         CraftEnum.CLERK,
                         posXa + PositionSlot.WIDTH,
                         scanwayPosY,
-                        subtitle, scanwayLabel);
+                        subtitle, scanwayLabel, consoomer);
                 for (PositionSlot slot : scanway[i]) { slot.addTo(root.getChildren()); }
             } else {
                 scanway[i] = new PositionSlot[3];
@@ -177,12 +195,12 @@ public class Main extends Application {
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
                         scanwayPosY + (i * PositionSlot.HEIGHT),
-                        subtitle, scanwayLabel);
+                        subtitle, scanwayLabel, consoomer);
                 scanway[i][2] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + (PositionSlot.WIDTH * 2),
                         scanwayPosY + (i * PositionSlot.HEIGHT),
-                        subtitle, scanwayLabel);
+                        subtitle, scanwayLabel, consoomer);
                 for (PositionSlot slot : scanway[i]) { slot.addTo(root.getChildren()); }
             }
         }
@@ -207,7 +225,7 @@ public class Main extends Application {
                             CraftEnum.CLERK,
                             posXa + (PositionSlot.WIDTH * j),
                             adusPosY,
-                            subtitle, adusLabel);
+                            subtitle, adusLabel, consoomer);
                 }
                 for (PositionSlot slot : adus[i]) { slot.addTo(root.getChildren()); }
             } else if (i < 3) {
@@ -221,12 +239,12 @@ public class Main extends Application {
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
                         adusPosY + (i * PositionSlot.HEIGHT),
-                        subtitle, adusLabel);
+                        subtitle, adusLabel, consoomer);
                 adus[i][2] = new PositionSlot(
                         CraftEnum.MAILHANDLER,
                         posXa + (PositionSlot.WIDTH * 2),
                         adusPosY + (i * PositionSlot.HEIGHT),
-                        subtitle, adusLabel);
+                        subtitle, adusLabel, consoomer);
                 for (PositionSlot slot : adus[i]) { slot.addTo(root.getChildren()); }
             } else {
                 adus[i] = new PositionSlot[2];
@@ -239,7 +257,7 @@ public class Main extends Application {
                         CraftEnum.MAILHANDLER,
                         posXa + PositionSlot.WIDTH,
                         adusPosY + (i * PositionSlot.HEIGHT),
-                        subtitle, adusLabel);
+                        subtitle, adusLabel, consoomer);
             }
         }
 
@@ -258,7 +276,7 @@ public class Main extends Application {
                         CraftEnum.MAILHANDLER,
                         posXb + (PositionSlot.WIDTH * j),
                         topPosY + (PositionSlot.HEIGHT * i),
-                        null, prepLabel);
+                        null, prepLabel, consoomer);
             }
             for (PositionSlot slot : prep[i]) { slot.addTo(root.getChildren()); }
         }
@@ -289,7 +307,7 @@ public class Main extends Application {
                             CraftEnum.MAILHANDLER,
                             posXb + (PositionSlot.WIDTH * j),
                             dockMailhandlersPosY + (i * PositionSlot.HEIGHT),
-                            dockMailhandlersSlotLabel, dockMailhandlersLabel);
+                            dockMailhandlersSlotLabel, dockMailhandlersLabel, consoomer);
                 }
                 for (PositionSlot slot : dockMailhandlers[i]) { slot.addTo(root.getChildren()); }
             } else {
@@ -302,7 +320,7 @@ public class Main extends Application {
                         CraftEnum.MAILHANDLER,
                         posXb + PositionSlot.WIDTH,
                         dockMailhandlersPosY + (i * PositionSlot.HEIGHT),
-                        dockMailhandlersSlotLabel, dockMailhandlersLabel);
+                        dockMailhandlersSlotLabel, dockMailhandlersLabel, consoomer);
                 for (PositionSlot slot : dockMailhandlers[i]) { slot.addTo(root.getChildren()); }
             }
         }
@@ -331,7 +349,7 @@ public class Main extends Application {
                         CraftEnum.CLERK,
                         posXb + (PositionSlot.WIDTH * j),
                         dockClerksPosY + (i * PositionSlot.HEIGHT),
-                        dockClerksSlotLabel, dockClerksLabel);
+                        dockClerksSlotLabel, dockClerksLabel, consoomer);
             }
             for (PositionSlot slot : dockClerks[i]) { slot.addTo(root.getChildren()); }
         }
@@ -362,7 +380,7 @@ public class Main extends Application {
                         CraftEnum.CLERK,
                         posXc + PositionSlot.WIDTH,
                         topPosY + (i * PositionSlot.HEIGHT),
-                        lcusSlotLabel, lcusLabel);
+                        lcusSlotLabel, lcusLabel, consoomer);
             } else if (i == 2) {
                 lcus[i] = new PositionSlot[7];
                 for (int j = 1; j < lcus[i].length; j++) {
@@ -370,7 +388,7 @@ public class Main extends Application {
                             CraftEnum.EITHER,
                             posXc + (PositionSlot.WIDTH * j),
                             topPosY + (i * PositionSlot.HEIGHT),
-                            lcusSlotLabel, lcusLabel);
+                            lcusSlotLabel, lcusLabel, consoomer);
                 }
             } else {
                 lcus[i] = new PositionSlot[3];
@@ -379,7 +397,7 @@ public class Main extends Application {
                             i == 0 ? CraftEnum.MAILHANDLER : CraftEnum.CLERK,
                             posXc + (PositionSlot.WIDTH * j),
                             topPosY + (i * PositionSlot.HEIGHT),
-                            lcusSlotLabel, lcusLabel);
+                            lcusSlotLabel, lcusLabel, consoomer);
                 }
             }
             lcus[i][0] = new PositionSlot(
@@ -412,14 +430,14 @@ public class Main extends Application {
                         CraftEnum.MAILHANDLER,
                         posXc + PositionSlot.WIDTH,
                         statesPosY,
-                        statesSlotLabel, statesLabel);
+                        statesSlotLabel, statesLabel, consoomer);
             } else if (i == states.length - 1 || (i > 1 && i < 8)) {
                 states[i] = new PositionSlot[2];
                 states[i][1] = new PositionSlot(
                         CraftEnum.CLERK,
                         posXc + PositionSlot.WIDTH,
                         statesPosY + (i * PositionSlot.HEIGHT),
-                        statesSlotLabel, statesLabel);
+                        statesSlotLabel, statesLabel, consoomer);
             } else {
                 states[i] = new PositionSlot[i == 1 ? 7 : 3];
                 for (int j = 1; j < states[i].length; j++) {
@@ -427,7 +445,7 @@ public class Main extends Application {
                             CraftEnum.CLERK,
                             posXc + (PositionSlot.WIDTH * j),
                             statesPosY + (i * PositionSlot.HEIGHT),
-                            statesSlotLabel, statesLabel);
+                            statesSlotLabel, statesLabel, consoomer);
                 }
             }
             states[i][0] = new PositionSlot(
@@ -462,12 +480,16 @@ public class Main extends Application {
             exception.printStackTrace();
         }
 
-        mEmployees = new Employee[lines.size()];
-        for (int i = 0; i < lines.size(); i++) {
+        mEmployees = new Employee[lines.size() - ((lines.get(lines.size() - 1) == null) ? 1 : 0)];
+        for (int i = 0; i < mEmployees.length; i++) {
             mEmployees[i] = new Employee(lines.get(i).split(","));
         }
 
         mListView.setItems(FXCollections.observableArrayList(mEmployees));
+
+        for (Employee employee : mEmployees) {
+
+        }
     }
 
     private void saveFile(String path) {

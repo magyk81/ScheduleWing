@@ -8,7 +8,7 @@ public class Employee {
     private final boolean mPitLicense, mExpeditorTraining;
     private final LocalDate mBirthday;
 
-    private int[] mCurrPositionSlots = new int[] { -1, -1, -1 };
+    private PositionSlot[] mCurrPositionSlots = new PositionSlot[3];
     private final int[] mPrevPositionSlots = new int[5];
 
     public Employee(
@@ -51,13 +51,42 @@ public class Employee {
         return Period.between(mBirthday, LocalDate.now()).getDays();
     }
 
+    /**
+     * @param position
+     * @return the position that was replaced, null if no position was replaced
+     */
+    public PositionSlot addPosition(PositionSlot position) {
+        for (int i = 0; i < mCurrPositionSlots.length; i++) {
+            if (mCurrPositionSlots[i] == null) {
+                mCurrPositionSlots[i] = position;
+                return null;
+            }
+        }
+        PositionSlot replacedPosition = mCurrPositionSlots[mCurrPositionSlots.length - 1];
+        replacedPosition.clearEmployee();
+        mCurrPositionSlots[mCurrPositionSlots.length - 1] = position;
+        return replacedPosition;
+    }
+    public void removePosition(PositionSlot position) {
+        position.clearEmployee();
+        for (int i = 0; i < mCurrPositionSlots.length; i++) {
+            if (mCurrPositionSlots[i] == position) {
+                // Shift them all to the left once.
+                for (int j = i; j < mCurrPositionSlots.length - 1; j++) {
+                    mCurrPositionSlots[j] = mCurrPositionSlots[j + 1];
+                }
+                mCurrPositionSlots[mCurrPositionSlots.length - 1] = null;
+            }
+        }
+    }
+
     public String toCsvLine() {
         StringBuilder sb = new StringBuilder();
-        sb.append(mName);
-        sb.append(mJob.name());
-        sb.append(mPitLicense ? "true" : "false");
-        sb.append(mExpeditorTraining ? "true" : "false");
-        sb.append(mBirthday);
+        sb.append(mName); sb.append(',');
+        sb.append(mJob.name()); sb.append(',');
+        sb.append(mPitLicense ? "true" : "false"); sb.append(',');
+        sb.append(mExpeditorTraining ? "true" : "false"); sb.append(',');
+        sb.append(mBirthday); sb.append(',');
         return sb.toString(); }
 
     public String getInfo() {
@@ -67,25 +96,39 @@ public class Employee {
         sb.append("\nPIT License: "); sb.append(mPitLicense ? "Yes" : "No");
         sb.append("\nExpeditor Training: "); sb.append(mExpeditorTraining ? "Yes" : "No");
 
-        if (mCurrPositionSlots[1] != -1) sb.append("\nCurrent Positions: ");
-        else if (mCurrPositionSlots[0] == -1) sb.append("\nCurrent Position: NONE");
-        for (int positionSlot : mCurrPositionSlots) {
-            if (positionSlot != -1) {
-                sb.append(PositionSlot.getName(positionSlot));
-                sb.append(", ");
-            } else break;
+        if (mCurrPositionSlots[1] != null) {
+            sb.append("\nCurrent Positions:\n");
+            for (PositionSlot positionSlot : mCurrPositionSlots) {
+                if (positionSlot != null) {
+                    sb.append("  ");
+                    sb.append(positionSlot.getName());
+                    sb.append(",\n");
+                } else break;
+            }
+            sb.delete(sb.length() - 2, sb.length());
         }
-        if (mCurrPositionSlots[0] != -1) sb.delete(sb.length() - 2, sb.length());
+        else if (mCurrPositionSlots[0] == null) sb.append("\nCurrent Position: NONE");
+        else {
+            sb.append("\nCurrent Positions:\n  ");
+            sb.append(mCurrPositionSlots[0].getName());
+        }
 
-        if (mPrevPositionSlots[1] != -1) sb.append("\nPrevious Positions: ");
-        else if (mPrevPositionSlots[0] == -1) sb.append("\nPrevious Position: NONE");
-        for (int positionSlot : mPrevPositionSlots) {
-            if (positionSlot != -1) {
-                sb.append(PositionSlot.getName(positionSlot));
-                sb.append(",\n");
-            } else break;
+        if (mPrevPositionSlots[1] != -1) {
+            sb.append("\nPrevious Positions:\n");
+            for (int positionSlot : mPrevPositionSlots) {
+                if (positionSlot != -1) {
+                    sb.append("  ");
+                    sb.append(PositionSlot.getName(positionSlot));
+                    sb.append(",\n");
+                } else break;
+            }
+            sb.delete(sb.length() - 2, sb.length());
         }
-        if (mPrevPositionSlots[0] != -1) sb.delete(sb.length() - 2, sb.length());
+        else if (mPrevPositionSlots[0] == -1) sb.append("\nPrevious Position: NONE");
+        else {
+            sb.append("\nPrevious Positions:\n  ");
+            sb.append(PositionSlot.getName(mPrevPositionSlots[0]));
+        }
 
         return sb.toString();
     }

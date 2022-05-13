@@ -9,6 +9,7 @@ import javafx.scene.text.TextAlignment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class PositionSlot {
 
@@ -22,13 +23,23 @@ public class PositionSlot {
     private Text mText;
     private String mTitle, mSubtitle;
 
-    public PositionSlot(CraftEnum craft, int xPos, int yPos, String subtitle, Text title) {
+    public PositionSlot(
+            CraftEnum craft,
+            int xPos,
+            int yPos,
+            String subtitle,
+            Text title,
+            Consumer<PositionSlot> consoomer) {
+
         mIsLabel = false;
         init(xPos, yPos);
         mRect.setFill(craft.getColor());
         mSubtitle = subtitle;
         mTitle = title.getText();
         sPositionSlots.add(this);
+
+        mRect.setOnMouseClicked(event -> { consoomer.accept(this); });
+        mText.setOnMouseClicked(event -> { consoomer.accept(this); });
     }
 
     public PositionSlot(int xPos, int yPos, String subtitle) {
@@ -45,10 +56,17 @@ public class PositionSlot {
         return sPositionSlots.get(idx).getName();
     }
 
+    public Employee getEmployee() { return mEmployee; }
     public void setEmployee(Employee employee) {
         if (mIsLabel) return;
         mEmployee = employee;
         mText.setText(employee.getName().replace(' ', '\n'));
+    }
+
+    public void clearEmployee() {
+        if (mIsLabel) return;
+        mEmployee = null;
+        mText.setText("");
     }
 
     public void addTo(ObservableList<Node> children) {
@@ -61,7 +79,7 @@ public class PositionSlot {
     public int getBottom() { return (int) mRect.getY() + HEIGHT; }
     public int getRight() { return (int) mRect.getX() + WIDTH; }
 
-    private String getName() {
+    public String getName() {
         StringBuilder sb = new StringBuilder();
         sb.append(mTitle);
         if (mSubtitle != null) {
