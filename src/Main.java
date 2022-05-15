@@ -1,6 +1,4 @@
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -34,7 +32,6 @@ public class Main extends Application {
                 false,
                 LocalDate.of(1993, Month.SEPTEMBER, 14)
         );
-        mEmployees = new Employee[] { sampleEmployee };
 
         mSections = new Section[] {
                 new Section("Dock", false),
@@ -74,21 +71,20 @@ public class Main extends Application {
         buttonSave.setTranslateX(indent);
         buttonSave.setTranslateY(70);
         buttonSave.setOnAction(event -> saveFile(textField.getText()));
+        Button buttonApply = new Button("Apply as Previous");
+        buttonApply.setTranslateX((indent * 2) + 80);
+        buttonApply.setTranslateY(buttonLoad.getTranslateY());
+        buttonApply.setOnAction(event -> applyAsPrev(buttonApply));
 
         mListView.setTranslateX(indent);
         mListView.setTranslateY(100);
         int listViewWidth = 200, listViewHeight = 360;
         mListView.setMaxWidth(listViewWidth);
         mListView.setMaxHeight(listViewHeight);
-        mListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Employee>() {
-            @Override
-            public void changed(ObservableValue<? extends Employee> observableValue, Employee employee, Employee t1) {
-                showEmployeeInfo(t1);
-            }
-        });
-        mListView.setItems(FXCollections.observableArrayList(mEmployees));
+        mListView.getSelectionModel().selectedItemProperty().addListener(
+                (observableValue, employee, t1) -> showEmployeeInfo(t1));
 
-        root.getChildren().addAll(textField, buttonLoad, buttonSave, mListView, mEmployeeInfo);
+        root.getChildren().addAll(textField, buttonLoad, buttonSave, buttonApply, mListView, mEmployeeInfo);
 
         Line[] employeeInfoBorder = new Line[4];
         int employeeInfoPosY = 100 + listViewHeight + indent, employeeInfoHeight = 250;
@@ -115,6 +111,7 @@ public class Main extends Application {
                     positionSlot.setEmployee(selectedEmployee);
                 }
                 showEmployeeInfo(selectedEmployee);
+                buttonApply.setDisable(false);
             } else positionSlot.clearEmployee();
         };
 
@@ -459,9 +456,6 @@ public class Main extends Application {
         statesLabel.setX(posXc); statesLabel.setY(states[0][0].getTop() - 10);
         root.getChildren().add(statesLabel);
 
-        // Testing
-        apps[0][1].setEmployee(sampleEmployee);
-
         stage.show();
     }
 
@@ -486,10 +480,6 @@ public class Main extends Application {
         }
 
         mListView.setItems(FXCollections.observableArrayList(mEmployees));
-
-        for (Employee employee : mEmployees) {
-
-        }
     }
 
     private void saveFile(String path) {
@@ -505,6 +495,12 @@ public class Main extends Application {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+    }
+
+    private void applyAsPrev(Button button) {
+        for (Employee employee : mEmployees) { employee.applyAsPrev(); }
+        showEmployeeInfo(mListView.getSelectionModel().getSelectedItem());
+        button.setDisable(true);
     }
 
     private void showEmployeeInfo(Employee employee) {

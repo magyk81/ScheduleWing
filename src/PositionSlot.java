@@ -16,6 +16,7 @@ public class PositionSlot {
     public final static int WIDTH = 60, HEIGHT = WIDTH / 2;
     private final static List<PositionSlot> sPositionSlots = new ArrayList<>();
 
+    private final int mId;
     private final boolean mIsLabel;
     private final Line[] mBorder = new Line[4];
     private Employee mEmployee;
@@ -36,6 +37,7 @@ public class PositionSlot {
         mRect.setFill(craft.getColor());
         mSubtitle = subtitle;
         mTitle = title.getText();
+        mId = sPositionSlots.size();
         sPositionSlots.add(this);
 
         mRect.setOnMouseClicked(event -> { consoomer.accept(this); });
@@ -50,12 +52,14 @@ public class PositionSlot {
             mText.setFont(Font.font(15));
             mText.setY(mRect.getY() + HEIGHT / 1.5);
         }
+        mId = -1;
     }
 
     public static String getName(int idx) {
         return sPositionSlots.get(idx).getName();
     }
 
+    public int getId() { return mId; }
     public Employee getEmployee() { return mEmployee; }
     public void setEmployee(Employee employee) {
         if (mIsLabel) return;

@@ -1,5 +1,7 @@
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Employee {
 
@@ -80,6 +82,22 @@ public class Employee {
         }
     }
 
+    public void applyAsPrev() {
+        List<Integer> newPrevSlots = new ArrayList<Integer>();
+        for (int i = 0; i < mCurrPositionSlots.length; i++) {
+            if (newPrevSlots.size() >= mPrevPositionSlots.length) break;
+            if (mCurrPositionSlots[i] != null) newPrevSlots.add(mCurrPositionSlots[i].getId());
+        }
+        for (int i = 0; i < mPrevPositionSlots.length; i++) {
+            if (newPrevSlots.size() >= mPrevPositionSlots.length) break;
+            if (mPrevPositionSlots[i] != -1) newPrevSlots.add(mPrevPositionSlots[i]);
+        }
+        for (int i = 0; i < mPrevPositionSlots.length; i++) {
+            if (newPrevSlots.size() <= i) break;
+            mPrevPositionSlots[i] = newPrevSlots.get(i);
+        }
+    }
+
     public String toCsvLine() {
         StringBuilder sb = new StringBuilder();
         sb.append(mName); sb.append(',');
@@ -87,6 +105,7 @@ public class Employee {
         sb.append(mPitLicense ? "true" : "false"); sb.append(',');
         sb.append(mExpeditorTraining ? "true" : "false"); sb.append(',');
         sb.append(mBirthday); sb.append(',');
+        for (int positionSlot : mPrevPositionSlots) { sb.append(positionSlot); sb.append(','); }
         return sb.toString(); }
 
     public String getInfo() {
