@@ -22,6 +22,9 @@ public class Main extends Application {
     private final ListView<Employee> mListView = new ListView<>();
     private final Text mEmployeeInfo = new Text();
 
+    public static void main(String[] args) {
+        launch(args);
+    }
     @Override
     public void start(Stage stage) {
 
