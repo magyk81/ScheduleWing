@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="ScheduleWing:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/ScheduleWing_jar</output-path>
-    <root id="archive" name="ScheduleWing.jar">
-      <element id="module-output" name="ScheduleWing" />
-    </root>
-  </artifact>
-</component>
