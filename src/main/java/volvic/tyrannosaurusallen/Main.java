@@ -32,7 +32,8 @@ public class Main extends Application {
                 JobEnum.EXPEDITOR_CLERK,
                 true,
                 false,
-                LocalDate.of(1993, Month.SEPTEMBER, 14)
+                LocalDate.of(1993, Month.SEPTEMBER, 14),
+                "MTR" // Monday, Tuesday, and Thursday off
         );
 
         mSections = new Section[] {

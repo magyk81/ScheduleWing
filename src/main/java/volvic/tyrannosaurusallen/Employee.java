@@ -1,5 +1,6 @@
 package volvic.tyrannosaurusallen;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ public class Employee {
     private final JobEnum mJob;
     private final boolean mPitLicense, mExpeditorTraining;
     private final LocalDate mBirthday;
+    private DayOfWeek[] mDaysOff;
 
     private PositionSlot[] mCurrPositionSlots = new PositionSlot[3];
     private final int[] mPrevPositionSlots = new int[5];
@@ -21,6 +23,7 @@ public class Employee {
             boolean pitLicense,
             boolean expeditorTraining,
             LocalDate birthday,
+            String daysOff,
             int... prevPositionSlots) {
         mName = name;
         mJob = job;
@@ -32,6 +35,20 @@ public class Employee {
             if (i >= prevPositionSlots.length) mPrevPositionSlots[i] = -1;
             else mPrevPositionSlots[i] = prevPositionSlots[i];
         }
+
+        final char[] daysOffChars = daysOff.toCharArray();
+        mDaysOff = new DayOfWeek[daysOffChars.length];
+        for (int i = 0; i < daysOffChars.length; i++) {
+            switch (daysOffChars[i]) {
+                case 'M' -> mDaysOff[i] = DayOfWeek.MONDAY;
+                case 'T' -> mDaysOff[i] = DayOfWeek.TUESDAY;
+                case 'W' -> mDaysOff[i] = DayOfWeek.WEDNESDAY;
+                case 'R' -> mDaysOff[i] = DayOfWeek.THURSDAY;
+                case 'F' -> mDaysOff[i] = DayOfWeek.FRIDAY;
+                case 'S' -> mDaysOff[i] = DayOfWeek.SATURDAY;
+                case 'U' -> mDaysOff[i] = DayOfWeek.SUNDAY;
+            }
+        }
     }
 
     public Employee(String[] vals) {
@@ -41,11 +58,12 @@ public class Employee {
                 vals[2].equals("true"),
                 vals[3].equals("true"),
                 LocalDate.parse(vals[4]),
-                (vals.length > 5) ? Integer.parseInt(vals[5]) : -1,
+                vals[5],
                 (vals.length > 6) ? Integer.parseInt(vals[6]) : -1,
                 (vals.length > 7) ? Integer.parseInt(vals[7]) : -1,
                 (vals.length > 8) ? Integer.parseInt(vals[8]) : -1,
-                (vals.length > 9) ? Integer.parseInt(vals[9]) : -1
+                (vals.length > 9) ? Integer.parseInt(vals[9]) : -1,
+                (vals.length > 10) ? Integer.parseInt(vals[10]) : -1
         );
     }
 
@@ -107,6 +125,7 @@ public class Employee {
         sb.append(mPitLicense ? "true" : "false"); sb.append(',');
         sb.append(mExpeditorTraining ? "true" : "false"); sb.append(',');
         sb.append(mBirthday); sb.append(',');
+        sb.append(getDaysOffString(false)); sb.append(',');
         for (int positionSlot : mPrevPositionSlots) { sb.append(positionSlot); sb.append(','); }
         return sb.toString(); }
 
@@ -116,6 +135,7 @@ public class Employee {
         sb.append("\nDate of girth: "); sb.append(mBirthday);
         sb.append("\nPIT License: "); sb.append(mPitLicense ? "Yes" : "No");
         sb.append("\nExpeditor Training: "); sb.append(mExpeditorTraining ? "Yes" : "No");
+        sb.append("\nDays Off:\n"); sb.append(getDaysOffString(true));
 
         if (mCurrPositionSlots[1] != null) {
             sb.append("\nCurrent Positions:\n");
@@ -153,6 +173,24 @@ public class Employee {
 
         return sb.toString();
     }
+
     @Override
     public String toString() { return getName(); }
+
+    private String getDaysOffString(boolean spelledOut) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < mDaysOff.length; i++) {
+            switch (mDaysOff[i]) {
+                case MONDAY -> sb.append(spelledOut ? "  Monday" : 'M');
+                case TUESDAY -> sb.append(spelledOut ? "  Tuesday" : 'T');
+                case WEDNESDAY -> sb.append(spelledOut ? "  Wednesday" : 'W');
+                case THURSDAY -> sb.append(spelledOut ? "  Thursday" : 'R');
+                case FRIDAY -> sb.append(spelledOut ? "  Friday" : 'F');
+                case SATURDAY -> sb.append(spelledOut ? "  Saturday" : 'S');
+                case SUNDAY -> sb.append(spelledOut ? "  Sunday" : 'U');
+            }
+            if (spelledOut && i < mDaysOff.length - 1) sb.append('\n');
+        }
+        return sb.toString();
+    }
 }
