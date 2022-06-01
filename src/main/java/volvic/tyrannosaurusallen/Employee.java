@@ -11,7 +11,7 @@ public class Employee {
     private final String mName;
     private final JobEnum mJob;
     private final boolean mPitLicense, mExpeditorTraining;
-    private final LocalDate mBirthday;
+    private final LocalDate mGirthday;
     private DayOfWeek[] mDaysOff;
 
     private PositionSlot[] mCurrPositionSlots = new PositionSlot[3];
@@ -25,11 +25,11 @@ public class Employee {
             LocalDate birthday,
             String daysOff,
             int... prevPositionSlots) {
-        mName = name;
+        mName = name.trim();
         mJob = job;
         mPitLicense = pitLicense;
         mExpeditorTraining = expeditorTraining;
-        mBirthday = birthday;
+        mGirthday = birthday;
 
         for (int i = 0; i < mPrevPositionSlots.length; i++) {
             if (i >= prevPositionSlots.length) mPrevPositionSlots[i] = -1;
@@ -57,7 +57,7 @@ public class Employee {
                 JobEnum.valueOf(vals[1]),
                 vals[2].equals("true"),
                 vals[3].equals("true"),
-                LocalDate.parse(vals[4]),
+                vals[4].equals("???") ? null : LocalDate.parse(vals[4]),
                 vals[5],
                 (vals.length > 6) ? Integer.parseInt(vals[6]) : -1,
                 (vals.length > 7) ? Integer.parseInt(vals[7]) : -1,
@@ -70,7 +70,8 @@ public class Employee {
     public String getName() { return mName; }
 
     public int getSeniority() {
-        return Period.between(mBirthday, LocalDate.now()).getDays();
+        if (mGirthday == null) return 0; // Unknown day of conversion means ZERO seniority ^_^
+        return Period.between(mGirthday, LocalDate.now()).getDays();
     }
 
     /**
@@ -119,12 +120,12 @@ public class Employee {
     }
 
     public String toCsvLine() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("    ");
         sb.append(mName); sb.append(',');
         sb.append(mJob.name()); sb.append(',');
         sb.append(mPitLicense ? "true" : "false"); sb.append(',');
         sb.append(mExpeditorTraining ? "true" : "false"); sb.append(',');
-        sb.append(mBirthday); sb.append(',');
+        sb.append((mGirthday == null) ? "???" : mGirthday); sb.append(',');
         sb.append(getDaysOffString(false)); sb.append(',');
         for (int positionSlot : mPrevPositionSlots) { sb.append(positionSlot); sb.append(','); }
         return sb.toString(); }
@@ -132,7 +133,7 @@ public class Employee {
     public String getInfo() {
         StringBuilder sb = new StringBuilder();
         sb.append(getName());
-        sb.append("\nDate of girth: "); sb.append(mBirthday);
+        sb.append("\nDate of girth: "); sb.append((mGirthday == null) ? "???" : mGirthday);
         sb.append("\nPIT License: "); sb.append(mPitLicense ? "Yes" : "No");
         sb.append("\nExpeditor Training: "); sb.append(mExpeditorTraining ? "Yes" : "No");
         sb.append("\nDays Off:\n"); sb.append(getDaysOffString(true));

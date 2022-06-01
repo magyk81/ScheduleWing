@@ -470,7 +470,9 @@ public class Main extends Application {
             String line;
             do {
                 line = reader.readLine();
-                lines.add(line);
+                // Ignore comments and empty lines.
+                if (line != null && line.trim().length() > 0 && line.trim().charAt(0) != '#')
+                    lines.add(line);
             } while (line != null);
             reader.close();
         } catch (IOException exception) {
